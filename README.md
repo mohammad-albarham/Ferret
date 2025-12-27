@@ -1,175 +1,176 @@
-# 🦡 Ferret
+# Ferret Tracker
 
-**A curious file tracker** — Ferret is a lightweight, terminal-based tool that monitors directories for new files and presents them in an interactive, searchable TUI.
+<img src="assets/ferret-logo.png" alt="Ferret Logo" width="200" />
 
-Like its namesake, Ferret is small, fast, and excellent at finding things. It maintains a local ledger of all files that appear in your watched directories, making it easy to track downloads, artifacts, and any other files that flow into your system.
+A lightweight, real-time file tracker with an interactive terminal UI for monitoring watched directories. Ferret maintains a persistent SQLite ledger of all detected files, making it easy to audit and browse file activity.
 
-## ✨ Features
+## Overview
 
-- **Real-time file monitoring** — Watches directories for new files using native OS APIs (inotify on Linux, FSEvents on macOS)
-- **Local SQLite ledger** — Persistent, searchable history of all detected files
-- **Interactive TUI** — Navigate, filter, and act on files with keyboard shortcuts
-- **Smart classification** — Automatically categorizes files by type (executable, archive, document, media, code, etc.)
-- **Configurable** — TOML configuration with CLI overrides
-- **Lightweight** — Event-driven architecture with minimal CPU usage
+Ferret is designed for users who need to track files appearing in specific directories in real-time. Whether monitoring download folders, artifact outputs, or project directories, Ferret provides an intuitive interface with multiple view modes, filtering, and persistent storage.
 
-## 📦 Installation
+## Features
 
-### From crates.io
+- **Real-time File Monitoring** — Native OS file system notifications (inotify/FSEvents)
+- **Persistent Database** — SQLite ledger stored locally for historical tracking
+- **Interactive TUI** — Navigate, search, filter, and inspect files
+- **Multiple View Modes** — Flat (chronological), Grouped (by folder), and Tree (nested hierarchy)
+- **Smart File Classification** — Automatically categorizes files by type
+- **Flexible Configuration** — TOML-based config with per-directory ignore patterns
+- **Cross-platform** — Supports Linux, macOS, and Windows
 
+## Quick Start
+
+### Installation
+
+From crates.io (once published):
 ```bash
 cargo install ferret-tracker
 ```
 
-### From Source
-
+From source:
 ```bash
-# Clone the repository
-git clone https://github.com/mohammad-albarham/ferret.git
-cd ferret
-
-# Build in release mode
+git clone https://github.com/mohammad-albarham/Ferret.git
+cd Ferret
 cargo build --release
-
-# Install to ~/.cargo/bin
-cargo install --path .
+./target/release/ferret-tracker watch
 ```
 
-### Requirements
-
-- Rust 1.75 or later
-- SQLite (bundled with rusqlite)
-- Linux, macOS, or Windows
-
-## 🚀 Quick Start
+### Basic Usage
 
 ```bash
-# Start watching with TUI (uses default config)
-ferret-tracker watch
+# Start the watcher with interactive TUI
+cargo run -- watch
 
 # Watch specific directories
-ferret-tracker watch --watch ~/Downloads --watch ~/Desktop
+cargo run -- watch --watch ~/Downloads --watch ~/Desktop
 
-# Run headless (no TUI, just logging)
-ferret-tracker watch --headless
-
-# List recent files
-ferret-tracker list --since 24h
-
-# Show statistics
-ferret-tracker stats
+# Run headless (no TUI, just database population)
+cargo run -- watch --headless
 ```
 
-## ⌨️ TUI Keybindings
+While running, create files in watched directories to see them appear in the interface.
+
+## User Interface
+
+### View Modes
+
+Press `Tab` to cycle between three view modes:
+
+| Mode | Description |
+|------|-------------|
+| **Flat** | Chronological list of recent file events |
+| **Grouped** | Files organized under folder headers |
+| **Tree** | Nested folder hierarchy with expand/collapse |
+
+### Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
-| `↑/↓` or `j/k` | Navigate list |
-| `PgUp/PgDn` | Scroll by page |
-| `Home/End` | Jump to start/end |
-| `Enter` | View details |
+| `Tab` | Cycle view mode |
+| `↑` / `↓` or `k` / `j` | Move selection up/down |
+| `←` / `→` or `h` / `l` | Collapse/expand (Tree view) |
+| `Space` | Toggle expand/collapse |
+| `e` / `E` | Expand all / Collapse all (Tree view) |
+| `Home` / `End` | Jump to start/end of list |
+| `PgUp` / `PgDn` | Page up/down |
+| `Enter` | View file details |
 | `f` | Open filter menu |
 | `/` | Search by path |
-| `o` | Open file/folder |
-| `t` | Edit tags |
-| `n` | Edit notes |
-| `d` | Delete file (with confirmation) |
-| `r` | Refresh list |
-| `q` or `Esc` | Quit / Close overlay |
-| `?` | Show help |
+| `o` | Open file with default program |
+| `?` | Show help overlay |
+| `q` / `Esc` | Quit or close overlay |
 
-## ⚙️ Configuration
+## Configuration
 
-Ferret uses a TOML configuration file located at:
-- Linux/macOS: `~/.config/ferret/config.toml`
-- Windows: `%APPDATA%\ferret\config.toml`
+Configuration file location:
+- **Linux/macOS**: `~/.config/ferret/config.toml`
+- **Windows**: `%APPDATA%\ferret\config.toml`
 
 ### Example Configuration
 
 ```toml
-# Directories to watch (recursive)
+# Directories to monitor recursively
 watch_paths = [
     "~/Downloads",
     "~/Desktop",
+    "~/Projects"
 ]
 
-# Patterns to ignore (glob syntax)
+# Glob patterns to exclude from monitoring
 ignore_patterns = [
     "**/node_modules/**",
     "**/target/**",
     "**/.git/**",
-    "**/.*",           # Hidden files
+    "**/.venv/**",
     "**/*.tmp",
-    "**/*.swp",
+    "**/*.swp"
 ]
 
-# Minimum file size to log (in bytes)
-# Set to 0 to log all files
+# Minimum file size to log (bytes, 0 = all files)
 min_size_bytes = 0
 
-# Days to keep events before auto-cleanup
-# Set to 0 to disable cleanup
+# Retention period for old entries (days, 0 = no cleanup)
 retention_days = 90
 
-# Log level: "error", "warn", "info", "debug", "trace"
+# Log level (error, warn, info, debug, trace)
 log_level = "info"
-
-# Database location (default: ~/.local/share/ferret/ledger.db)
-# database_path = "~/.local/share/ferret/ledger.db"
 ```
 
-## 📊 Commands
+### Hidden Files and .venv
 
-### `ferret watch`
+By default, Ferret monitors all files including those in hidden directories like `.venv`. To exclude hidden directories, add the pattern to `ignore_patterns`:
 
-Start the file watcher with interactive TUI.
+```toml
+ignore_patterns = [
+    "/**/.*/**",  # Exclude all hidden directories
+]
+```
+
+## Commands
+
+### watch
+Start the file watcher with interactive TUI or headless mode.
 
 ```bash
-ferret watch [OPTIONS]
+ferret-tracker watch [OPTIONS]
 
 Options:
-  -w, --watch <PATH>    Additional paths to watch (can be repeated)
-      --headless        Run without TUI (daemon mode)
-      --no-defaults     Don't use paths from config file
-  -h, --help            Show help
+  --watch <PATH>    Add directory to watch (can be repeated)
+  --headless        Run without TUI (background mode)
+  --no-defaults     Ignore paths in config file
 ```
 
-### `ferret list`
-
-Display recent file events in tabular format.
+### list
+Display recent file events from the database.
 
 ```bash
-ferret list [OPTIONS]
+ferret-tracker list [OPTIONS]
 
 Options:
-      --since <DURATION>     Time window (e.g., "24h", "7d", "30d")
-      --size-min <BYTES>     Minimum file size filter
-      --size-max <BYTES>     Maximum file size filter
-      --type <TYPE>          Filter by type (executable, archive, document, media, code, other)
-      --path <PATTERN>       Filter by path substring
-  -n, --limit <N>            Maximum entries to show (default: 50)
-      --json                 Output as JSON
-  -h, --help                 Show help
+  --since <DURATION>    Time filter (e.g., "24h", "7d")
+  --type <TYPE>         Filter by file type
+  --path <PATTERN>      Filter by path substring
+  -n, --limit <N>       Maximum entries to show (default: 50)
+  --json                Output as JSON
 ```
 
-### `ferret stats`
-
+### stats
 Show statistics about tracked files.
 
 ```bash
-ferret stats [OPTIONS]
+ferret-tracker stats [OPTIONS]
 
 Options:
-      --json    Output as JSON
-  -h, --help    Show help
+  --json    Output as JSON
 ```
 
-## 🗃️ Database
+## Database
 
-Ferret stores its ledger in a SQLite database:
-- Linux: `~/.local/share/ferret/ledger.db`
-- macOS: `~/Library/Application Support/ferret/ledger.db`
-- Windows: `%LOCALAPPDATA%\ferret\ledger.db`
+### Location
+
+- **Linux**: `~/.local/share/ferret/ledger.db`
+- **macOS**: `~/Library/Application Support/ferret/ledger.db`
+- **Windows**: `%LOCALAPPDATA%\ferret\ledger.db`
 
 ### Schema
 
@@ -180,71 +181,106 @@ CREATE TABLE events (
     dir TEXT NOT NULL,
     filename TEXT NOT NULL,
     size_bytes INTEGER,
-    created_at TEXT NOT NULL,      -- ISO 8601 timestamp
+    created_at TEXT NOT NULL,
     file_type TEXT NOT NULL,
-    tags TEXT DEFAULT '',          -- Comma-separated
+    tags TEXT DEFAULT '',
     notes TEXT DEFAULT ''
 );
 ```
 
-## 🔧 Architecture
+## Development
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Main Thread                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Config    │  │   Store     │  │        TUI          │  │
-│  │   Loader    │  │  (SQLite)   │  │     (Ratatui)       │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                           ▲
-                           │ Channel
-                           │
-┌─────────────────────────────────────────────────────────────┐
-│                     Watcher Thread                          │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              notify (inotify/FSEvents)              │    │
-│  └─────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
-```
+### Prerequisites
 
-## 🛠️ Development
+- Rust 1.75+
+- Cargo
+
+### Building
 
 ```bash
-# Run in debug mode
-cargo run -- watch
+# Debug build
+cargo build
 
-# Run tests
-cargo test
-
-# Run with verbose logging
-RUST_LOG=debug cargo run -- watch
-
-# Check formatting
-cargo fmt --check
-
-# Run clippy
-cargo clippy
+# Release build
+cargo build --release
 ```
 
-## 🗺️ Roadmap
+### Testing
 
-- [ ] Background daemon mode with systemd/launchd integration
-- [ ] File deduplication detection (hash-based)
-- [ ] Export ledger to CSV/JSON
-- [ ] Desktop notifications for large files
-- [ ] Network share monitoring
-- [ ] File preview in detail view
-- [ ] Batch operations on selected files
+```bash
+# Run all tests
+cargo test
 
-## 📄 License
+# Run with verbose output
+cargo test -- --nocapture
 
-This project is licensed under the [MIT License](LICENSE).
+# Run specific test
+cargo test test_tree_nav -- --nocapture
+```
 
-## 🙏 Acknowledgments
+### Code Quality
 
-Built with these excellent Rust crates:
-- [Ratatui](https://ratatui.rs/) — Terminal UI framework
-- [notify](https://docs.rs/notify/) — Cross-platform file system notifications
-- [rusqlite](https://docs.rs/rusqlite/) — SQLite bindings
-- [clap](https://docs.rs/clap/) — Command line argument parsing
+```bash
+# Format check
+cargo fmt --check
+
+# Lint warnings
+cargo clippy
+
+# Fix formatting issues
+cargo fmt
+```
+
+### Running with Debug Logging
+
+```bash
+RUST_LOG=debug cargo run -- watch
+```
+
+## Architecture
+
+```
+┌─────────────────────────────────────────┐
+│         Main/UI Thread                  │
+│  ┌──────────┐  ┌──────────┐             │
+│  │ Config   │  │ Store    │ SQLite DB   │
+│  │ Loader   │  │ (read)   │             │
+│  └──────────┘  └──────────┘             │
+│         ↑                                │
+│      Channel                            │
+│         ↓                                │
+│  ┌────────────────────────────────┐     │
+│  │     Ratatui TUI Engine         │     │
+│  └────────────────────────────────┘     │
+└─────────────────────────────────────────┘
+        ▲
+        │ File Events
+        │
+┌─────────────────────────────────────────┐
+│      Watcher Thread                     │
+│  ┌────────────────────────────────┐     │
+│  │ notify (inotify/FSEvents)      │     │
+│  │ → FileEvent → DB insertion     │     │
+│  └────────────────────────────────┘     │
+└─────────────────────────────────────────┘
+```
+
+## Contributing
+
+Contributions are welcome. Please ensure:
+- Code passes `cargo test`
+- Code is formatted with `cargo fmt`
+- Clippy warnings are addressed
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+## Dependencies
+
+- **ratatui** — Terminal UI framework
+- **notify** — Cross-platform file system events
+- **rusqlite** — SQLite database bindings
+- **clap** — Command-line argument parsing
+- **serde** — Serialization framework
+- **chrono** — Date/time handling
