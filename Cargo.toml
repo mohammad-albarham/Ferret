@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Ferret Contributors"]
 description = "A curious file tracker - monitors and logs new files in a searchable TUI"
-license = "CC0-1.0"
+license = "MIT"
 readme = "README.md"
-repository = "https://github.com/yourusername/ferret"
+repository = "https://github.com/mohammad-albarham/ferret"
 keywords = ["filesystem", "monitor", "tui", "file-tracking", "download-manager"]
 categories = ["command-line-utilities", "filesystem"]
 
